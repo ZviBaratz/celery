@@ -116,16 +116,16 @@ from celery.utils.text import pluralize
 __all__ = ('MultiTool',)
 
 USAGE = """\
-usage: {prog_name} start <node1 node2 nodeN|range> [worker options]
-       {prog_name} stop <n1 n2 nN|range> [-SIG (default: -TERM)]
-       {prog_name} restart <n1 n2 nN|range> [-SIG] [worker options]
-       {prog_name} kill <n1 n2 nN|range>
+usage: {prog_name} multi start <node1 node2 nodeN|range> [worker options]
+       {prog_name} multi stop <n1 n2 nN|range> [-SIG (default: -TERM)]
+       {prog_name} multi restart <n1 n2 nN|range> [-SIG] [worker options]
+       {prog_name} multi kill <n1 n2 nN|range>
 
-       {prog_name} show <n1 n2 nN|range> [worker options]
-       {prog_name} get hostname <n1 n2 nN|range> [-qv] [worker options]
-       {prog_name} names <n1 n2 nN|range>
-       {prog_name} expand template <n1 n2 nN|range>
-       {prog_name} help
+       {prog_name} multi show <n1 n2 nN|range> [worker options]
+       {prog_name} multi get hostname <n1 n2 nN|range> [-qv] [worker options]
+       {prog_name} multi names <n1 n2 nN|range>
+       {prog_name} multi expand template <n1 n2 nN|range>
+       {prog_name} multi help
 
 additional options (must appear after command name):
 
@@ -471,4 +471,9 @@ class MultiTool(TermLogger):
 def multi(ctx):
     """Start multiple worker instances."""
     cmd = MultiTool(quiet=ctx.obj.quiet, no_color=ctx.obj.no_color)
-    return cmd.execute_from_commandline([''] + ctx.args)
+    # In 4.x, celery multi ignores the global --app option.
+    # Since in 5.0 the --app option is global only we
+    # rearrange the arguments so that the MultiTool will parse them correctly.
+    args = sys.argv[1:]
+    args = args[args.index('multi'):] + args[:args.index('multi')]
+    return cmd.execute_from_commandline(args)
